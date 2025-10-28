@@ -1,14 +1,8 @@
 // Import required modules using CommonJS
 const express = require('express');
 const Url = require('../models/Url');
-const { saveUrl, getUrlByShortId, incrementCount } = require('../repository/UrlRepository');
-
-// nanoid is now an ES Module, so we can't use require(). Instead, use dynamic import (works in CommonJS)
-let nanoid;
-(async () => {
-    // Dynamically import nanoid and extract the nanoid function
-    nanoid = (await import('nanoid')).nanoid;
-})();
+const { saveUrl, getUrlByShortId, incrementCount, getNextId } = require('../repository/UrlRepository');
+const { encodeBase62 } = require('../utlis/base62');
 
 // Helper function to validate a URL
 function isValidUrl(url) {
@@ -37,16 +31,14 @@ async function shortenUrl(originalUrl) {
             throw new Error('Invalid URL format');
         }
 
-        // Ensure nanoid is loaded before using it
-        if (!nanoid) {
-            nanoid = (await import('nanoid')).nanoid;
-        }
+        // Get next unique ID from counter
+        const id = await getNextId();
 
-        // Generate a 6-character short ID
-        const shortId = nanoid(6);
+        // Encode ID to base62 for short URL
+        const shortId = encodeBase62(id);
 
         // Save the short URL and original URL in the database
-        const urlDoc = await saveUrl(shortId, originalUrl);
+        const urlDoc = await saveUrl(shortId, originalUrl, id);
         return urlDoc;
 
     } catch (error) {

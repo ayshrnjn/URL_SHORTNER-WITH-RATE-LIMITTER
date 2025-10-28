@@ -1,7 +1,8 @@
-const Url= require('../models/Url');
+const Url = require('../models/Url');
+const Counter = require('../models/Counter');
 
-async function saveUrl(shortId,originalUrl){
-    const newUrl= new Url({shortUrl:shortId,originalUrl:originalUrl});
+async function saveUrl(shortId, originalUrl, id) {
+    const newUrl = new Url({ id: id, shortUrl: shortId, originalUrl: originalUrl });
     return await newUrl.save();
 }
 
@@ -14,5 +15,9 @@ async function incrementCount(urlDoc){
     return await urlDoc.save();
 }
 
+async function getNextId() {
+    const counter = await Counter.getNextSequence('counter');
+    return counter.seq;
+}
 
-module.exports={saveUrl,getUrlByShortId,incrementCount};
+module.exports={saveUrl,getUrlByShortId,incrementCount,getNextId};
